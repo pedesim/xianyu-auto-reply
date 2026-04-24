@@ -124,5 +124,10 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 # 验证Node.js安装并设置环境变量
 RUN node --version && npm --version
 
+# Copy virtual env and app files from builder
 COPY --from=builder /opt/venv /opt/venv
-COPY --from=build
+COPY --from=builder /app /app
+
+# Re-export the venv PATH in the runtime stage
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="$VIRTUAL_ENV/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
