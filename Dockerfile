@@ -57,7 +57,8 @@ COPY --from=frontend-builder /frontend/dist ./static
 FROM base AS runtime
 
 # 设置标签信息
-LABEL maintainer="zhinianboke" \
+# NOTE: Updated maintainer to my fork info
+LABEL maintainer="personal-fork" \
       version="2.2.0" \
       description="闲鱼自动回复系统 - 企业级多用户版本，支持自动发货和免拼发货" \
       repository="https://github.com/zhinianboke/xianyu-auto-reply" \
@@ -124,31 +125,4 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN node --version && npm --version
 
 COPY --from=builder /opt/venv /opt/venv
-COPY --from=builder /app /app
-ENV VIRTUAL_ENV=/opt/venv
-ENV PATH="$VIRTUAL_ENV/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
-
-RUN playwright install chromium && \
-    playwright install-deps chromium
-
-# 创建必要的目录并设置权限
-RUN mkdir -p /app/logs /app/data /app/backups /app/static/uploads/images && \
-    chmod 777 /app/logs /app/data /app/backups /app/static/uploads /app/static/uploads/images
-
-# 配置系统限制，防止core文件生成
-RUN echo "ulimit -c 0" >> /etc/profile
-
-# 注意: 为了简化权限问题，使用root用户运行
-# 在生产环境中，建议配置适当的用户映射
-
-# 暴露端口
-EXPOSE 8080
-
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
-
-RUN chmod +x /app/entrypoint.sh
-
-# 启动命令
-CMD ["/app/entrypoint.sh"]
+COPY --from=build
